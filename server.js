@@ -70,7 +70,7 @@ async function start(typeDefs, resolvers){
 // function connect to db
 const connectDB = async () => {
     try {
-      await mongoose.connect(`mongodb://${url}/${database}`);
+      await mongoose.connect(`mongodb+srv://notes:notes@mini-project.slwlqew.mongodb.net/?retryWrites=true&w=majority`);
       console.log(`Connected to ${database}: ${portdb}`);
     } catch (err) {
       console.log('Failed to connect to MongoDB', err);
