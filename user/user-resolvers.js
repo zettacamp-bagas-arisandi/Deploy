@@ -104,7 +104,7 @@ async function GetOneUser(parent, {id, email}){
 }
 
 /////////////// MUTATION USER ///////////////
-async function CreateUser(parent,{email, password, first_name, last_name, role}){
+async function CreateUser(parent,{email, password, first_name, last_name, role, question_answer}){
     try{
         let permission = [];
 
@@ -168,7 +168,9 @@ async function CreateUser(parent,{email, password, first_name, last_name, role})
         first_name: first_name, 
         last_name: last_name, 
         role: role,
-        user_type: permission
+        question_answer: question_answer,
+        user_type: permission,
+        balance: 500000
     });
     const added = await addUser.save();
     return addUser;
