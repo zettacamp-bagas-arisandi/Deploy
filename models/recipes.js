@@ -51,6 +51,9 @@ const recipeSchema = new mongoose.Schema({
     is_hightlighted: {
         type: Boolean,
         default: false
+    },
+    category: {
+        type : String
     }
 }, {timestamps: true});
 
