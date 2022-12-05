@@ -117,12 +117,22 @@ async function GetAllRecipesNotLogin(parent, {recipe_name, skip = 0, status, is_
        }
     ];
 
-    /// jika bukan selain admin tampilkan yg active saja
- 
+    /// tampilkan yang active saja
     query.$and.push({
         status: "active"
     })
   
+    if(is_hightlighted === true){
+        query.$and.push({
+            is_hightlighted: true
+        })
+    }
+
+    if(is_special_offers === true){
+        query.$and.push({
+            "is_special_offers.status": true
+        })
+    }
 
     /// filter by recipe name, jika ada akan di push ke query $and
    if(recipe_name){
@@ -139,19 +149,6 @@ async function GetAllRecipesNotLogin(parent, {recipe_name, skip = 0, status, is_
         });
    }
 
-   /// filter by special offers
-   if(is_special_offers){
-       query.$and.push({
-           is_special_offers:is_special_offers
-        });
-   }
-
-   /// filter by hightlighted
-   if(is_hightlighted){
-       query.$and.push({
-           is_hightlighted:is_hightlighted
-        });
-   }
 
     /// Kondisi jika semua parameter terisi, akan melakukan pipeline match
     if (query.$and.length > 0){
@@ -166,6 +163,7 @@ async function GetAllRecipesNotLogin(parent, {recipe_name, skip = 0, status, is_
        }])
        count = countMatch.length;
    }
+   console.log(query.$and)
    // console.log(query)
    result = await recipesModel.aggregate(queryAgg);
    
