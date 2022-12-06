@@ -167,8 +167,9 @@ async function GetOrder(parent, _, context){
     const menus = result.menu;
     let totalPrice = 0;
     for(let menu of menus){
-        let recipe = await recipesModel.findById(menu.recipe_id)
-        totalPrice += (menu.amount * recipe.price)
+        let recipe = await recipesModel.findById(menu.recipe_id);
+        if(!recipe){throw new GraphQLError("Menu tidak ada dalam list")};
+        totalPrice += (menu.amount * recipe.price);
     }
     // console.log(totalPrice)
     return result
@@ -302,7 +303,7 @@ async function OrderNow(parent,{id}, context){
         let transaction = await transactionsModel.findById(id);
         if(transaction.order_status !== 'pending') throw new GraphQLError('Order sudah selesai');
         if(transaction.menu.length<1) throw new GraphQLError('Pilih Menu dulu dong baru order')
-        transaction = await validateStockIngredient(transaction,id);
+        transaction = await validateStockIngredient(transaction,id, context);
         return transaction;
     }catch(err){
         throw new GraphQLError(err)
@@ -346,6 +347,19 @@ try{
 }
 
 /////////////// ANOTHER FUNCTION  ///////////////
+async function reduceBalance(total_price, context){
+    let balanceUser = await modelUser.findById(context);
+    if(balanceUser.balance > total_price){
+        let reduce = await modelUser.findByIdAndUpdate(context, {
+            $inc : {
+                balance: -total_price
+              }
+        }); 
+    }else{
+        throw new GraphQLError(`Saldo anda kurang, butuh ${total_price - balanceUser.balance} lagi`);
+    }
+}
+
 async function reduceIngredientStock(ids,stockUsed){
     for (const [index, _] of ids.entries()){
         const reduce = await ingrModel.findByIdAndUpdate(ids[index],{
@@ -372,12 +386,11 @@ async function getTotalPrice(creator){
 }
 
 
-async function validateStockIngredient(creator, id){
+async function validateStockIngredient(creator, id, context){
      /// temp var
     let checkStatus = [];
     let ingrMap = [];
     let usedStock = [];
-    let stocked = [];
 
     let map = new Map();
 
@@ -393,27 +406,40 @@ async function validateStockIngredient(creator, id){
                 map.set(getIngredient.name, getIngredient.stock - ingredients.stock_used * menu.amount);
             }
 
-           
-
             ingrMap.push(ingredients.ingredient_id);
             usedStock.push(ingredients.stock_used * menu.amount) 
-            if(ingredients.stock_used * menu.amount < getIngredient.stock && getIngredient.status === 'active'){
+            if(ingredients.stock_used * menu.amount <= getIngredient.stock && getIngredient.status === 'active'){
                 checkStatus.push(true)
             }else{
                 checkStatus.push(false)
             }
         }
     }
-        // console.log(map)
-        map.forEach((val,key) => {
-            if(val < 1){
-                // console.log(`Waduh ${key}-nya habis`)
-                throw new GraphQLError(`Waduh ${key}-nya habis`);
-            }
-        })
-        if (!checkStatus.includes(false)){
-        creator.order_status = 'success';
+    
+    let cekStock = [];
+    map.forEach((val,key) => {
+        if(val < 0){
+            cekStock.push(key)
+        }    
+    });
+        
+    if(cekStock.length>0){
+         throw new GraphQLError(`Waduh ${cekStock} tidak mencukupi`)
+    }
+
+    if (!checkStatus.includes(false)){
+        reduceBalance(creator.total_price, context.req.user_id)
         reduceIngredientStock(ingrMap,usedStock);
+        creator.order_status = 'success';
+
+        /// update sold at recipe
+        for( const menu of creator.menu){
+            let update = await recipesModel.findByIdAndUpdate(menu.recipe_id,{
+                $inc : {
+                    sold: menu.amount
+                  }
+            })
+        }
     }else{
         creator.order_status = 'failed';
     }

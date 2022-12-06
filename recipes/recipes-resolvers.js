@@ -124,7 +124,7 @@ async function GetAllRecipesNotLogin(parent, {recipe_name, skip = 0, status, is_
   
     if(is_hightlighted === true){
         query.$and.push({
-            is_hightlighted: true
+            sold: {$gt: 5}
         })
     }
 
@@ -209,7 +209,9 @@ async function GetOneRecipes(parent, {id}){
 
 
 //////////////// MUTATION ////////////////
-async function CreateRecipes(parent, { recipe_name, input, description, price, image, status, is_special_offers, discount, is_hightlighted} ){
+async function CreateRecipes(parent, { recipe_name, input, description, price, image, status, is_special_offers, discount, is_hightlighted, sold = 0} ){
+        
+        if(!input){throw new GraphQLError("Ingredient tidak boleh kosong")};
         /// Validasi ingredients sesuai di database dan active
         for (let ingredientz of input){
             const bahan = await ingrModel.findById(ingredientz.ingredient_id);
@@ -223,6 +225,7 @@ async function CreateRecipes(parent, { recipe_name, input, description, price, i
             image: image,
             price: price,
             status: status,
+            sold:sold,
             is_hightlighted: is_hightlighted,
             is_special_offers: {
                 status: is_special_offers,
