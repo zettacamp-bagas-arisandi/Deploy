@@ -6,7 +6,7 @@ const recipeModel = require("../models/recipes");
 
 
 //////////////// QUERY ////////////////
-async function GetAllIngredients(parent, {name, status = 'active', stock, skip = 0, page = 1, limit = 5}){
+async function GetAllIngredients(parent, {name, status, stock, skip = 0, page = 1, limit = 5}){
      let result;
      /// kondisikan skip dan count
      let count = await ingrModel.count();
@@ -38,6 +38,13 @@ async function GetAllIngredients(parent, {name, status = 'active', stock, skip =
         });
     }
          
+
+    if(status==""){
+        query.$and.push({
+            status:"active"
+        });
+    }
+
     if(status){
         query.$and.push({
             status:status
