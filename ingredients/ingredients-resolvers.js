@@ -164,7 +164,7 @@ async function DeleteIngredients(parent, {id}){
         }
 
         /// Check apakah ada true atau false
-        if (check.status === false) throw new GraphQLError(`${id} tidak bisa dirubah, terpakai di resep ${usedRecipes}`)
+        if (check.status === false) throw new GraphQLError(`${id} tidak bisa dihapus, terpakai di resep ${usedRecipes}`)
         deleted = await ingrModel.findByIdAndUpdate(id,{
             status: 'deleted'
         },{new: true, runValidators: true});      

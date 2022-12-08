@@ -9,7 +9,14 @@ const { GraphQLError } = require('graphql');
 const { ApolloError } = require('apollo-server');
 
 /////////////// QUERY ///////////////
-async function GetAllTransactions(parent, {last_name_user, recipe_name, order_status, order_date, page = 1, limit = 5}, context){
+async function GetAllTransactions(parent, 
+    {   
+        /// args/parameter filter
+        first_name_user, last_name_user, recipe_name, order_status, order_date, page = 1, limit = 5,
+        /// sorting
+        sortUserName, sortTotalPrice, sortDate, sortMenu
+    }, 
+    context){
     let result;
 
     /// kondisikan skip dan count
@@ -32,9 +39,7 @@ async function GetAllTransactions(parent, {last_name_user, recipe_name, order_st
 
 
 /// Kondisi untuk parameter, jika ada akan di push ke query $and
-
-    if(last_name_user){
-        last_name_user = new RegExp(last_name_user, 'i');
+    if(last_name_user || first_name_user || sortUserName!== undefined){
         queryAgg.push(
             {
                 $lookup:
@@ -46,10 +51,65 @@ async function GetAllTransactions(parent, {last_name_user, recipe_name, order_st
                 }
             }
         )
-        queryLookUp.$and.push({ "users_populate.last_name": last_name_user })
+
+        if(last_name_user){
+            last_name_user = new RegExp(last_name_user, 'i');
+            queryLookUp.$and.push({ "users_populate.last_name": last_name_user })
+        }
+
+        if(first_name_user){
+            first_name_user = new RegExp(first_name_user, 'i');
+            queryLookUp.$and.push({ "users_populate.first_name": first_name_user })
+        }
+
+
+        if(sortUserName === true){
+            queryAgg.push({
+                $sort: {
+                    "users_populate.first_name": 1
+                }
+            })
+        }
+        
+        if(sortUserName === false){
+            queryAgg.push({
+                $sort: {
+                    "users_populate.first_name": -1
+                }
+            })
+        }
+
     };
+
+    /// kondisi jika pakai sort by date
+    if(sortDate!==undefined){
+        /// temp var
+        let sortBy;
+
+        /// menentukan asending atau descending
+        if(sortDate === true || sortDate === null){
+            sortBy = -1
+        }else{
+            sortBy = 1
+        }
+        
+        /// push query agg nya
+        queryAgg.push({
+            $sort:{
+                createdAt: sortBy
+            }
+        });
+    }else{
+        /// defaultnya berdasarkan date terbaru
+        queryAgg.push({
+            $sort:{
+                createdAt: -1
+            }
+        })
+    }
+
        
-    if(recipe_name){
+    if(recipe_name || sortMenu !== undefined){
         recipe_name = new RegExp(recipe_name, 'i');
         queryAgg.push(
             {
@@ -61,8 +121,23 @@ async function GetAllTransactions(parent, {last_name_user, recipe_name, order_st
                     as: "recipes_populate"
                 }
             }
-            )
-        queryLookUp.$and.push({ "recipes_populate.recipe_name": recipe_name })
+        )
+        queryLookUp.$and.push({ "recipes_populate.recipe_name": recipe_name });
+
+        /// sort
+        let sortBy;
+        if(sortMenu === true){
+            sortBy = -1;
+        }else{
+            sortBy = 1;
+        }
+
+        queryAgg.push({
+            $sort: {
+                "recipes_populate.recipe_name": sortBy
+            }
+        })
+
     };
 
     if(order_status){
@@ -77,6 +152,22 @@ async function GetAllTransactions(parent, {last_name_user, recipe_name, order_st
         // console.log(order_date)
         query.$and.push({
             order_date: order_date
+        })
+    }
+
+
+    if(sortTotalPrice!== undefined){
+        let sortBy;
+        if(sortTotalPrice === true){
+           sortBy = -1
+        }else{
+            sortBy = 1
+        }
+
+         queryAgg.push({
+            $sort:{
+                total_price: sortBy
+            }
         })
     }
 
@@ -106,10 +197,6 @@ async function GetAllTransactions(parent, {last_name_user, recipe_name, order_st
     /// apply pagination
     queryAgg.push(
             {
-                $sort: {
-                    createdAt: -1
-                    }
-            },{
                 $skip: skip
             },{
                 $limit: limit
@@ -136,7 +223,7 @@ async function GetAllTransactions(parent, {last_name_user, recipe_name, order_st
         count: count,
         data: result,
     }
-
+    console.log(queryAgg)
     return result;
 
 }

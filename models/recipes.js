@@ -42,6 +42,10 @@ const recipeSchema = new mongoose.Schema({
             type: Boolean,
             default: false
         },
+        price_discount: {
+            type: Number,
+            default: 0
+        },
         discount: {
             type: Number,
             default: 5,
@@ -55,6 +59,10 @@ const recipeSchema = new mongoose.Schema({
     category: {
         type : String,
         default: "appetizer"
+    },
+    sold: {
+        type: Number,
+        default: 0
     }
 }, {timestamps: true});
 
