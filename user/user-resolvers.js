@@ -269,11 +269,11 @@ async function ForgetPassword(parent, {email, answer, newPassword}){
         let update = await modelUser.findByIdAndUpdate(find._id,{
             password: newPassword
         },{new: true, runValidators: true});      
+        return {result: "Password berhasil dirubah!"}
    }else{
     throw new GraphQLError('Security answer salah!')
    }
     
-   return {result: "Password berhasil dirubah!"}
 }
 
 
