@@ -104,6 +104,7 @@ async function GetOneUser(parent, {id, email}){
 }
 
 /////////////// MUTATION USER ///////////////
+
 async function CreateUser(parent,{email, password, first_name, last_name, role, question_answer}){
     try{
         let permission = [];
@@ -258,6 +259,21 @@ async function Login(parent, {email, password}, context){
     }
 }
 
+async function ForgetPassword(parent, {email, answer, newPassword}){
+   let find = await modelUser.findOne({email:email});
+   if(!find){
+       throw new GraphQLError('Email tidak ditemukan');
+    }
+    newPassword = await bcrypt.hash(newPassword, 5);
+    if(answer === find.question_answer){
+        let update = await modelUser.findByIdAndUpdate(find._id,{
+            password: newPassword
+        },{new: true, runValidators: true});      
+   }
+    
+   return {result: "Password berhasil dirubah!"}
+}
+
 
 const userResolvers = {
     Query: {
@@ -269,6 +285,7 @@ const userResolvers = {
         UpdateUser,
         DeleteUser,
         Login,
+        ForgetPassword
     }
   }
 

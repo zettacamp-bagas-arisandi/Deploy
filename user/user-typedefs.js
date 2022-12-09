@@ -40,6 +40,10 @@ type Token{
     token: String
 }
 
+type security_answer{
+    result: String
+}
+
 type Query {
     GetOneUser(id: ID, email: String): User
     GetAllUser(
@@ -56,6 +60,7 @@ type Mutation{
     UpdateUser(email: String, password: String, first_name: String, last_name: String): User
     DeleteUser(id: ID): User
     Login(email: String, password: String): Token
+    ForgetPassword(email: String, answer: String, newPassword: String): security_answer
 }
 
 input GetAllUserInput{
