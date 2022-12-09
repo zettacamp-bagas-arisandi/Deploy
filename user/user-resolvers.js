@@ -181,7 +181,6 @@ async function CreateUser(parent,{email, password, first_name, last_name, role, 
 }
 
 async function UpdateUser(parent, { id,email, first_name, last_name, password},context){
-
     /// temp variabel
     let update;
 
@@ -189,6 +188,7 @@ async function UpdateUser(parent, { id,email, first_name, last_name, password},c
     if (password){
         password = await bcrypt.hash(password, 5);
     }
+
     if(email || first_name || last_name || password){
         update = await modelUser.findByIdAndUpdate(context.req.user_id,{
             email: email, 
@@ -250,6 +250,7 @@ async function Login(parent, {email, password}, context){
                 user_type: getUser.user_type,
                 first_name: getUser.first_name,
                 token: token,
+                balance: getUser.balance
             };
         }else{
             throw new GraphQLError(`Password salah`);
