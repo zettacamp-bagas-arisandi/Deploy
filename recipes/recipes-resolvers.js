@@ -216,7 +216,7 @@ async function GetOneRecipes(parent, {id}){
 
 //////////////// MUTATION ////////////////
 async function CreateRecipes(parent, { recipe_name, input, description, price, image, status, is_special_offers = false, discount = 0, sold = 0} ){
-        let check = await recipesModel.find({recipe_name: recipe_name});
+        let check = await recipesModel.findOne({recipe_name: recipe_name});
         if(check){
             throw new GraphQLError(`${recipe_name} sudah ada!`);
         }
