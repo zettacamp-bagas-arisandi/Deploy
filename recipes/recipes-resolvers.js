@@ -235,7 +235,6 @@ async function CreateRecipes(parent, { recipe_name, input, description, price, i
             price: price,
             status: status,
             sold:sold,
-            is_hightlighted: is_hightlighted,
             is_special_offers: {
                 status: is_special_offers,
                 price_discount: price - (price * (discount/100)),
