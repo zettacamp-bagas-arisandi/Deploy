@@ -9,7 +9,7 @@ const recipeModel = require("../recipes/recipes-model");
 async function GetAllIngredients(parent, {name, status, stock, skip = 0, page = 1, limit = 5}){
      let result;
      /// kondisikan skip dan count
-     let count = await ingrModel.count();
+     
      skip = (page-1)*limit;
   
      
@@ -63,7 +63,6 @@ async function GetAllIngredients(parent, {name, status, stock, skip = 0, page = 
         }])
         count = countMatch.length;
     }
- 
     result = await ingrModel.aggregate(queryAgg);
     
     
@@ -118,7 +117,7 @@ async function CreateIngredients(parent, {name, stock}){
         /// Cek ingredient sudah ada belum
         const check = await ingrModel.findOne({ name: new RegExp("^" + name.trim() + "$", 'i') });
         //// kalo ada return error
-        if (check) { throw new GraphQLError(`Ingredient: ${name} sudah ada`) }
+        if (check) { throw new GraphQLError(`Ingredient: ${name} sudah ada`) };
         let addIngr = {};
         addIngr = new ingrModel({
         name: name,
@@ -131,11 +130,12 @@ async function CreateIngredients(parent, {name, stock}){
     }
 }
 
-async function UpdateIngredients(parent, {id, stock}){
+async function UpdateIngredients(parent, {id, stock, name}){
     let update;
     if(id){
         update = await ingrModel.findByIdAndUpdate(id,{
-            stock: stock
+            name: name,
+            stock: stock,
         },{new: true, runValidators: true});      
     }else{
         throw new GraphQLError('id ingredient tidak terbaca');
