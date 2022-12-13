@@ -1,5 +1,5 @@
-const recipesModel = require("../models/recipes");
-const ingrModel = require("../models/ingredients");
+const recipesModel = require("./recipes-model");
+const ingrModel = require("../ingredients/ingredients-model");
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const { GraphQLError } = require('graphql');

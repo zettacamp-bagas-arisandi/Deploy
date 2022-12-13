@@ -5,10 +5,11 @@ const { merge } = require('lodash');
 const { makeExecutableSchema } = require('@graphql-tools/schema');
 const { applyMiddleware } = require ('graphql-middleware');
 
+
 /// Import Loader
-const ingrLoader = require('./loader/ingredients-loader.js');
-const userLoader = require('./loader/user-loader.js');
-const recipeLoader = require('./loader/recipe-loader');
+const ingrLoader = require('./ingredients/ingredients-loader');
+const userLoader = require('./user/user-loader.js');
+const recipeLoader = require('./recipes/recipe-loader');
 
 /// Import things from user
 const { userTypeDefs } = require('./user/user-typedefs.js');
@@ -63,15 +64,18 @@ const server = new ApolloServer({
 
 /// function to start db and apollo server
 async function start(typeDefs, resolvers){
-    const url = 'localhost:27017';
-    const portdb = 27017;
+    // const url = 'localhost:27017';
+    // const portdb = 27017;
     const database = 'zettacamp';
+
+    /// connect with atlas
+    const url = `mongodb+srv://notes:notes123@mini-project.slwlqew.mongodb.net/${database}?retryWrites=true&w=majority`;
 
 // function connect to db
 const connectDB = async () => {
     try {
-      await mongoose.connect(`mongodb+srv://notes:notes123@mini-project.slwlqew.mongodb.net/zettacamp?retryWrites=true&w=majority`);
-      console.log(`Connected to ${database}: ${portdb}`);
+      await mongoose.connect(`${url}`);
+      console.log(`Connected to ${database}: Atlas`);
     } catch (err) {
       console.log('Failed to connect to MongoDB', err);
     }
