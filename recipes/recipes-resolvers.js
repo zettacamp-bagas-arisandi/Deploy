@@ -222,11 +222,20 @@ async function CreateRecipes(parent, { recipe_name, input, description, price, i
         }
         if(input.length<1){throw new GraphQLError("Ingredient tidak boleh kosong")};
         /// Validasi ingredients sesuai di database dan active
-        for (let ingredientz of input){
-            const bahan = await ingrModel.findById(ingredientz.ingredient_id);
-            if(!bahan) throw new GraphQLError(`${ingredientz.ingredient_id} tidak ada`);
+        for (let list of input){
+            const bahan = await ingrModel.findById(list.ingredient_id);
+            if(!bahan) throw new GraphQLError(`${list.ingredient_id} tidak ada`);
             if(bahan.status !== 'active') throw new GraphQLError(`${bahan.name} tidak bisa digunakan`);
         }
+
+        /// kalkulasi price after discount
+        let calculate = 0;
+        if(discount >= 5 && discount <= 75){
+            calculate = price - (price * (discount/100))
+        }else{
+            calculate = getRecipes.price;
+        }
+        
         const recipes = new recipesModel({
             recipe_name: recipe_name,
             ingredients: input,
@@ -237,7 +246,7 @@ async function CreateRecipes(parent, { recipe_name, input, description, price, i
             category: category,
             sold:sold,
             is_special_offers: {
-                price_discount: price - (price * (discount/100)),
+                price_discount: calculate,
                 discount: discount
             }
             
@@ -248,11 +257,10 @@ async function CreateRecipes(parent, { recipe_name, input, description, price, i
 
 }
 
-async function UpdateRecipes(parent, {id, recipe_name, input, stock_used, description, price, image, status, discount, category}){
+async function UpdateRecipes(parent, {id, recipe_name, input, stock_used, description, price, image, status, discount = 0, category}){
     let update;
 
     let getRecipes = await recipesModel.findById(id);
-    console.log(getRecipes)
     
     if(id){
 
@@ -289,12 +297,19 @@ async function UpdateRecipes(parent, {id, recipe_name, input, stock_used, descri
         if(!status){
             status = getRecipes.status
         }
-
     
         if(!discount){
             discount = getRecipes.is_special_offers.discount
         };
 
+        /// kalkulasi price after discount
+        let calculate = 0;
+        if(discount >= 5 && discount <= 75){
+            calculate = price - (price * (discount/100))
+        }else{
+            calculate = getRecipes.price;
+        }
+       
         update = await recipesModel.findByIdAndUpdate(getRecipes._id,{
             recipe_name: recipe_name,
             ingredients: input,
@@ -305,7 +320,7 @@ async function UpdateRecipes(parent, {id, recipe_name, input, stock_used, descri
             image: image,
             status: status,
             is_special_offers: {
-                price_discount: price - (price * (discount/100)),
+                price_discount:calculate,
                 discount: discount
             }
         },{new: true});   
