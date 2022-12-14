@@ -165,6 +165,7 @@ async function DeleteIngredients(parent, {id}){
     if(id){
         let usedRecipes = [];
         const check = await findIngredientInRecipe(id);
+        const checkIngredient = await findById(id);
 
         /// Cari ingredientnnya dipakai gak
         const search = await recipeModel.find( {"ingredients.ingredient_id": mongoose.Types.ObjectId(id)});
@@ -176,7 +177,7 @@ async function DeleteIngredients(parent, {id}){
         }
 
         /// Check apakah ada true atau false
-        if (check.status === false) throw new GraphQLError(`${id} tidak bisa dihapus, terpakai di resep ${usedRecipes}`)
+        if (check.status === false) throw new GraphQLError(`${checkIngredient.name} tidak bisa dihapus, terpakai di resep ${usedRecipes}`)
         deleted = await ingrModel.deleteOne(mongoose.Types.ObjectId(id));
         return {status: `Ingredient berhasil dihapus!` };
     }else{
