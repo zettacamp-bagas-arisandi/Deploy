@@ -217,15 +217,14 @@ async function GetOneRecipes(parent, {id}){
 //////////////// MUTATION ////////////////
 async function CreateRecipes(parent, { recipe_name, input, description, price, image, status, discount = 0, sold = 0, category} ){
         let check = await recipesModel.findOne({recipe_name: recipe_name});
-        if(check!==null){
+        if(check.status!=='deleted'){
             throw new GraphQLError(`${recipe_name} sudah ada!`);
         }
-        if(input.length<1){throw new GraphQLError("Ingredient tidak boleh kosong")};
-        /// Validasi ingredients sesuai di database dan active
+        if(!input || input.length < 1){throw new GraphQLError("Ingredient tidak boleh kosong")};
+        /// Validasi ingredients sesuai di database
         for (let list of input){
             const bahan = await ingrModel.findById(list.ingredient_id);
             if(!bahan) throw new GraphQLError(`${list.ingredient_id} tidak ada`);
-            if(bahan.status !== 'active') throw new GraphQLError(`${bahan.name} tidak bisa digunakan`);
         }
 
         /// kalkulasi price after discount
