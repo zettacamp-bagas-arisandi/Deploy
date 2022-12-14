@@ -96,7 +96,7 @@ async function GetAllTransactions(parent,
 
 
          /// menentukan asending atau descending
-         if(sortUserName === true || sortUserName === null){
+        if(sortUserName === true || sortUserName === null){
             sortBy = -1
         }else{
             sortBy = 1
@@ -312,7 +312,12 @@ async function addCart(parent, {input}, context ){
         let price = await recipesModel.findById(input.recipe_id)
         
         /// total price awal
-        add.total_price = price.price * input.amount
+        if(price.is_special_offers.discount >= 5){
+            add.total_price = price.is_special_offers.price_discount * input.amount;
+        }else{
+            add.total_price = (price.price*input.amount);
+        }
+
 
         add = new transactionsModel(add);
         await add.save();
@@ -460,17 +465,15 @@ async function reduceIngredientStock(ids,stockUsed){
 }
 
 async function getTotalPrice(creator){
-    let cek = 0;
-    let discountAmount = 0;
+    let prices = 0;
     if (creator.menu.length<1) return creator.price_amount = 0;
     for (const price of creator.menu){
         const checkRecipes = await recipesModel.findById(price.recipe_id);
-            let total = checkRecipes.price * price.amount;
-            discountAmount = (cek*checkRecipes.is_special_offers.discount)/100;
-            cek += total;
+        let total = checkRecipes.is_special_offers.price_discount * price.amount;
+        prices += total;
         }
 
-    creator.price_amount = cek - discountAmount;
+        creator.price_amount = prices;
     return creator.price_amount;
 }
 
@@ -560,13 +563,13 @@ async function IncrAmount(parent, {id}, context){
          )
          
         const transaction = await transactionsModel.findOne({$and:[{order_status: 'pending'}, {user_id: context.req.user_id}]});
+        console.log(transaction)
         let add = await transactionsModel.findByIdAndUpdate(transaction._id, 
             {
                 total_price: await getTotalPrice(transaction)
             },{new: true}
             )
        
-
         return {status: "Berhasil menambahkan Amount"};
     }catch(err){
         throw new GraphQLError(err)

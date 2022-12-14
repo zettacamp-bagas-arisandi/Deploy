@@ -6,9 +6,15 @@ const recipeModel = require("../recipes/recipes-model");
 
 
 //////////////// QUERY ////////////////
-async function GetAllIngredients(parent, {name, status, stock, skip = 0, page = 1, limit = 5}){
+async function GetAllIngredients(parent, 
+    {
+        name, status, stock, skip = 0, page = 1, limit = 5,
+        sortName, sortStock
+    }
+    ){
      let result;
      /// kondisikan skip dan count
+     let count = await ingrModel.count();
      
      skip = (page-1)*limit;
   
@@ -30,7 +36,35 @@ async function GetAllIngredients(parent, {name, status, stock, skip = 0, page = 
             name:name
          });
         }
-     
+
+        if(sortName!== undefined){
+
+            if(sortName === true || sortName === null){
+                sortBy = -1
+            }else{
+                sortBy = 1
+            }
+
+            queryAgg.push({
+                $sort: {
+                    name: sortBy
+                }
+            })
+        }
+
+        if(sortStock!== undefined){
+            if(sortStock === true || sortStock === null){
+                sortBy = -1
+            }else{
+                sortBy = 1
+            }
+
+            queryAgg.push({
+                $sort: {
+                    stock: sortBy
+                }
+            })
+        }
     /// filter by stock
     if(stock > 0){
         query.$and.push({
@@ -61,7 +95,7 @@ async function GetAllIngredients(parent, {name, status, stock, skip = 0, page = 
         let countMatch = await ingrModel.aggregate([{
             $match: query
         }])
-        count = countMatch.length;
+       count = countMatch.length;
     }
     result = await ingrModel.aggregate(queryAgg);
     
