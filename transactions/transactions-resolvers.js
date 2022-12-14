@@ -388,16 +388,11 @@ async function deleteCart(parent, {id}, context ){
 }
 
 async function OrderNow(parent,{id}, context){
-    try{
-        let transaction = await transactionsModel.findById(id);
-        if(transaction.order_status !== 'pending') throw new GraphQLError('Order sudah selesai');
-        if(transaction.menu.length<1) throw new GraphQLError('Pilih Menu dulu dong baru order')
-        transaction = await validateStockIngredient(transaction,id, context);
-        return transaction;
-    }catch(err){
-        throw new GraphQLError(err)
-    }
-
+    let transaction = await transactionsModel.findById(id);
+    if(transaction.order_status !== 'pending') throw new GraphQLError('Order sudah selesai');
+    if(transaction.menu.length<1) throw new GraphQLError('Pilih Menu dulu dong baru order')
+    transaction = await validateStockIngredient(transaction,id, context);
+    return transaction;
 }
 
 async function EditNote(parent,{id, newNote}, context){
