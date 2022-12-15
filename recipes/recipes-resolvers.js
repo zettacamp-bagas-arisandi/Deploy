@@ -189,7 +189,6 @@ async function GetAllRecipesNotLogin(parent, {recipe_name, skip = 0, status, is_
 
 };
 
-
 async function GetOneRecipes(parent, {id}){
     let result;
     /// Kondisi untuk parameter, jika ada akan find berdasarkan parameter
@@ -329,9 +328,7 @@ async function UpdateRecipes(parent, {id, recipe_name, input, stock_used, descri
     return update;
 }
 
-
 async function DeleteRecipes(parent, {id}){
-    try{
     let deleted;
     if(id){
         deleted = await recipesModel.findByIdAndUpdate(id,{
@@ -346,9 +343,6 @@ async function DeleteRecipes(parent, {id}){
     }
   
     return deleted;
-    }catch(err){
-        throw new GraphQLError(err)
-    }
 }
 
 //////////////// LOADER ////////////////
