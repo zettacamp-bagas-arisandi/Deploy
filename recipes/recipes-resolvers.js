@@ -207,8 +207,8 @@ async function GetOneRecipes(parent, {id}){
 
 
 //////////////// MUTATION ////////////////
-async function CreateRecipes(parent, { recipe_name, input, description, price, image, status = 'unpublish', discount = 0, sold = 0, category} ){
-        let check = await recipesModel.findOne({recipe_name: new RegExp("^" + recipe_name.trim() + "$", 'i')});
+async function CreateRecipes(parent, { recipe_name, input, description, price, image, status = 'unpublish', discount = 1, sold = 0, category} ){
+        let check = await recipesModel.findOne({ recipe_name: new RegExp("^" + recipe_name.trim() + "$", 'i') });
         if(check.status!=='deleted'){
             throw new GraphQLError(`${recipe_name} sudah ada!`);
         }
