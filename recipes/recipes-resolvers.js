@@ -225,7 +225,7 @@ async function CreateRecipes(parent, { recipe_name, input, description, price, i
             if(discount >= 5 && discount <= 75){
                 calculate = price - (price * (discount/100))
             }else{
-                calculate = getRecipes.price;
+                calculate = price;
             }
         }
         
