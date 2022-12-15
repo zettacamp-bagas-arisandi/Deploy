@@ -251,13 +251,23 @@ async function GetOneTransactions(parent, {id}){
 
 async function GetOrder(parent, _, context){
     let result =  await transactionsModel.findOne({order_status: 'pending', user_id: context.req.user_id});
-    
+    let user = await modelUser.findById(context.req.user_id);
     const menus = result.menu;
     for(let menu of menus){
         let recipe = await recipesModel.findById(menu.recipe_id);
         if(recipe.remain_order < 1){console.log(`Saat ini ${recipe.recipe_name} sedang habis`);}
         if(recipe.status !== 'active'){console.log(`Saat ini ${recipe.recipe_name} sedang tidak bisa dipesan`);}
         if(!recipe){throw new GraphQLError("Menu tidak ada dalam list")};
+    }
+
+    if(!result){
+        result = {
+            menu: [],
+            user_id:{
+                first_name: user.first_name,
+                last_name: user.last_name
+            }
+        }
     }
     return result
     
